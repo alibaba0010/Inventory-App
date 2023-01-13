@@ -13,7 +13,7 @@ export const authenticateUser = async (req, res, next) => {
   try {
     const decode = jwt.verify(token, process.env.JWT_SEC);
 
-    req.user = { userId: decode.userId, isAdmin: decode.isAdmin };
+    req.user = { userId: decode.userId, email: decode.email };
 
     next();
   } catch (err) {
@@ -39,21 +39,21 @@ export async function verifyUserWithId(req, res, next) {
   }
 }
 
-// VERIFY ADMIN WITHOUT PARAMS
-export async function verifyAdminWithId(req, res, next) {
-  const user = await User.findById(req.user.userId);
-  if (user || user.isAdmin === true) {
-    next();
-  } else {
-    throw new UnAuthorizedError("Access Denied admin");
-  }
-}
+// // VERIFY ADMIN WITHOUT PARAMS
+// export async function verifyAdminWithId(req, res, next) {
+//   const user = await User.findById(req.user.userId);
+//   if (user || user.isAdmin === true) {
+//     next();
+//   } else {
+//     throw new UnAuthorizedError("Access Denied admin");
+//   }
+// }
 
-// VERIFY ADMIN
-export function verifyAdmin(req, res, next) {
-  if (req.user.isAdmin === true || req.params.id === req.user.userId) {
-    next();
-  } else {
-    throw new UnAuthorizedError("Access Denied!!");
-  }
-}
+// // VERIFY ADMIN
+// export function verifyAdmin(req, res, next) {
+//   if (req.user.isAdmin === true || req.params.id === req.user.userId) {
+//     next();
+//   } else {
+//     throw new UnAuthorizedError("Access Denied!!");
+//   }
+// }

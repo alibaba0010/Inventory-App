@@ -2,6 +2,8 @@ import pkg from "mongoose";
 const { Schema, model } = pkg;
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 
 const UserSchema = new Schema(
   {
@@ -53,15 +55,20 @@ UserSchema.pre("save", async function (next) {
 
 UserSchema.methods.createJWT = async function () {
   const signInToken = jwt.sign(
-    { userId: this._id, isAdmin: this.isAdmin },
+    { userId: this._id, email: this.email },
     process.env.JWT_SEC,
     {
       expiresIn: process.env.JWT_LIFETIME,
     }
   );
-  // const redisStorage = await redisClient.set(signInToken, id);
 
   return signInToken;
-  // return { signInToken, redisStorage };
+};
+
+// compare password when login in
+UserSchema.methods.comparePassword = async function (userPassword) {
+  const passwordMatch = await bcrypt.compare(userPassword, this.password);
+
+  return passwordMatch;
 };
 export default model("User", UserSchema);

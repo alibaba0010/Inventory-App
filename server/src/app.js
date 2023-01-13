@@ -2,6 +2,7 @@ import express, { json } from "express";
 import userRouter from "./routes/user.router.js";
 import cors from "cors";
 import { errorHandler } from "./errors/error.js";
+import cookieParser from "cookie-parser";
 // import path from "path";
 // import { fileURLToPath } from "url";
 
@@ -12,6 +13,7 @@ const app = express();
 app
   .use(json())
   .use(cors())
+  .use(cookieParser())
   //   .use("/uploads", express.static(path.join(__dirname, ".", "uploads")))
 
   .use("/api/v1/users", userRouter)
