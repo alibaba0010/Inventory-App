@@ -1,5 +1,7 @@
 import pkg from "mongoose";
 const { Schema, model } = pkg;
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const UserSchema = new Schema(
   {
@@ -40,4 +42,26 @@ const UserSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// To hash password
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) next(); //{}
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  //next()
+});
+
+UserSchema.methods.createJWT = async function () {
+  const signInToken = jwt.sign(
+    { userId: this._id, isAdmin: this.isAdmin },
+    process.env.JWT_SEC,
+    {
+      expiresIn: process.env.JWT_LIFETIME,
+    }
+  );
+  // const redisStorage = await redisClient.set(signInToken, id);
+
+  return signInToken;
+  // return { signInToken, redisStorage };
+};
 export default model("User", UserSchema);
