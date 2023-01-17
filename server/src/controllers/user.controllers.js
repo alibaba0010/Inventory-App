@@ -71,7 +71,7 @@ export const loginOutUser = asyncHandler(async (req, res) => {
 export const getCurrentUser = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const user = await User.findById(userId);
-  if (!user) throw new notFoundError(`Unable to get User`);
+  if (!user) throw new notFoundError("Unable to get User");
 
   const { name, id, email, image, contact, bio } = user;
 
@@ -87,4 +87,9 @@ export const checkUserStatus = asyncHandler(async (req, res) => {
   if (!decode) res.json(false);
   return res.json(true);
 });
-export const updateUserProfile = asyncHandler(async (req, res) => {});
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+  const user = await User.findById(userId);
+  if (!user) throw new notFoundError("Unable to get User");
+  
+});

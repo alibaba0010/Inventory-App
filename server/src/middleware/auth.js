@@ -15,7 +15,7 @@ export const authenticateUser = asyncHandler(async (req, res, next) => {
 
     req.user = { userId: decode.userId };
     const user = await User.findById(req.user.userId).select("-password");
-
+// req.user = user
     if (user) {
       next();
     } else {
