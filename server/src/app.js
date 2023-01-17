@@ -11,9 +11,9 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 app
+.use(cookieParser())
   .use(json())
   .use(cors())
-  .use(cookieParser())
   //   .use("/uploads", express.static(path.join(__dirname, ".", "uploads")))
 
   .use("/api/v1/users", userRouter)

@@ -2,7 +2,8 @@ import asyncHandler from "express-async-handler";
 import BadRequestError from "../errors/badRequest.js";
 import { StatusCodes } from "http-status-codes";
 import User from "../models/User.js";
-import UnAuthenticatedError from "../errors/unaunthenticated.js"
+import notFoundError from "../errors/notFound.js";
+import UnAuthenticatedError from "../errors/unaunthenticated.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -21,14 +22,15 @@ export const registerUser = asyncHandler(async (req, res) => {
   res.cookie("token", token, {
     path: "/",
     httpOnly: true,
-    expires: new Date(Date.now() + 1000 * 86400), //1 day
+    expires: new Date(Date.now() + 1000 * 86400),
     sameSite: "none",
-    secure: true,
+    secure: false,
   });
-
   if (user) {
-    const { name, _id, email, image, contact, bio } = user;
-    res.status(StatusCodes.CREATED).json({ name, email, id: user._id, token }); //_id: user.id
+    const { name, id, email, image, contact, bio } = user;
+    res
+      .status(StatusCodes.CREATED)
+      .json({ name, email, id, token, image, contact, bio }); //_id: user.id
   } else {
     throw new BadRequestError("Invalid User data");
   }
@@ -45,6 +47,35 @@ export const loginUser = asyncHandler(async (req, res) => {
   if (!checkPassword) throw new UnAuthenticatedError("Invalid Password");
 
   const token = await checkUsers.createJWT();
-
+   res.cookie("token", token, {
+    path: "/",
+    httpOnly: true,
+    expires: new Date(Date.now() + 1000 * 86400),
+    sameSite: "none",
+    secure: false,
+  });
   res.status(StatusCodes.OK).json({ email: checkUsers.email, token });
+});
+
+export const loginOutUser = asyncHandler(async (req, res) => {
+  res.cookie("token", "", {
+    path: "/",
+    httpOnly: true,
+    expires: new Date(0),
+    sameSite: "none",
+    secure: false,
+  });
+  return res.status(StatusCodes.OK).json({ msg: "Successfully logged out" });
+});
+
+export const getCurrentUser = asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+  const user = await User.findById(userId);
+  if (!user) throw new notFoundError(`Unable to get User`);
+
+  const { name, id, email, image, contact, bio } = user;
+
+  return res
+    .status(StatusCodes.OK)
+    .json({ id, name, email, image, contact, bio });
 });

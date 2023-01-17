@@ -54,13 +54,9 @@ UserSchema.pre("save", async function (next) {
 });
 
 UserSchema.methods.createJWT = async function () {
-  const signInToken = jwt.sign(
-    { userId: this._id, email: this.email },
-    process.env.JWT_SEC,
-    {
-      expiresIn: process.env.JWT_LIFETIME,
-    }
-  );
+  const signInToken = jwt.sign({ userId: this._id }, process.env.JWT_SEC, {
+    expiresIn: process.env.JWT_LIFETIME,
+  });
 
   return signInToken;
 };
