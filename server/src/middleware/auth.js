@@ -11,7 +11,6 @@ export const authenticateUser = asyncHandler(async (req, res, next) => {
     if (!token)
       throw new UnauthenticatedError("Please login in to create a token");
     const decode = jwt.verify(token, process.env.JWT_SEC);
-    console.log("what is decoded: ", decode);
 
     req.user = { userId: decode.userId };
     const user = await User.findById(req.user.userId).select("-password");

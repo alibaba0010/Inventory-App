@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
+  // if ((!name|| !email ||password))
   if ((!name, !email, !password))
     throw new BadRequestError("Please fill all required field");
   if (password.length < 6)
@@ -91,5 +92,40 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const user = await User.findById(userId);
   if (!user) throw new notFoundError("Unable to get User");
-  
+
+  const { name, image, contact, bio } = req.body;
+  user.email = user.email;
+  user.name = name || user.name;
+  user.image = image || user.image;
+  user.contact = contact || user.contact;
+  user.bio = bio || user.bio;
+
+  const updatedUser = await user.save();
+  return res.status(StatusCodes.OK).json({
+    id: updatedUser.id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    image: updatedUser.image,
+    contact: updatedUser.contact,
+    bio: updatedUser.bio,
+  });
+});
+
+export const updateUserPassword = asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword && !newPassword)
+    throw new BadRequestError("Please fill all required field");
+
+  const user = await User.findById(userId);
+  if (!user) throw new notFoundError("Unable to get User");
+
+  const checkPassword = await user.comparePassword(oldPassword);
+  if (!checkPassword) throw new UnAuthenticatedError("Invalid Password");
+  user.password = newPassword;
+  console.log(user.password);
+  await user.save();
+  res.status(StatusCodes.OK).json({ msg: "Password change successful" });
 });

@@ -1,4 +1,4 @@
-import pkg from "mongoose";
+ import pkg from "mongoose";
 const { Schema, model } = pkg;
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";

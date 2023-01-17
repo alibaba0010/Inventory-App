@@ -5,7 +5,8 @@ import {
   loginOutUser,
   getCurrentUser,
   checkUserStatus,
-  updateUserProfile
+  updateUserProfile,
+  updateUserPassword
 } from "../controllers/user.controllers.js";
 import { authenticateUser } from "../middleware/auth.js";
 const userRouter = Router();
@@ -16,6 +17,7 @@ userRouter
   .get("/logout", loginOutUser)
   .get("/user",authenticateUser, getCurrentUser)
   .get("/dashboard", checkUserStatus)
-  .patch("/edit ", authenticateUser, updateUserProfile)
+  .patch("/edit", authenticateUser, updateUserProfile)
+  .patch("/edit/password", authenticateUser, updateUserPassword)
 
 export default userRouter;
