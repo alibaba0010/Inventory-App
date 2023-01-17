@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import User from "../models/User.js";
 import notFoundError from "../errors/notFound.js";
 import UnAuthenticatedError from "../errors/unaunthenticated.js";
-
+import jwt from "jsonwebtoken";
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -47,7 +47,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   if (!checkPassword) throw new UnAuthenticatedError("Invalid Password");
 
   const token = await checkUsers.createJWT();
-   res.cookie("token", token, {
+  res.cookie("token", token, {
     path: "/",
     httpOnly: true,
     expires: new Date(Date.now() + 1000 * 86400),
@@ -79,3 +79,12 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
     .status(StatusCodes.OK)
     .json({ id, name, email, image, contact, bio });
 });
+
+export const checkUserStatus = asyncHandler(async (req, res) => {
+  const token = await req.cookies.token;
+  if (!token) res.json(false);
+  const decode = jwt.verify(token, process.env.JWT_SEC);
+  if (!decode) res.json(false);
+  return res.json(true);
+});
+export const updateUserProfile = asyncHandler(async (req, res) => {});
