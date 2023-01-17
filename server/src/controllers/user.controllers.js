@@ -125,7 +125,6 @@ export const updateUserPassword = asyncHandler(async (req, res) => {
   const checkPassword = await user.comparePassword(oldPassword);
   if (!checkPassword) throw new UnAuthenticatedError("Invalid Password");
   user.password = newPassword;
-  console.log(user.password);
   await user.save();
   res.status(StatusCodes.OK).json({ msg: "Password change successful" });
 });
