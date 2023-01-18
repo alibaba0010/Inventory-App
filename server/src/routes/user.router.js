@@ -8,6 +8,7 @@ import {
   updateUserProfile,
   updateUserPassword,
   forgotPassword,
+  resetPassword
 } from "../controllers/user.controllers.js";
 import { authenticateUser } from "../middleware/auth.js";
 const userRouter = Router();
@@ -20,6 +21,7 @@ userRouter
   .get("/dashboard", checkUserStatus)
   .patch("/edit", authenticateUser, updateUserProfile)
   .patch("/edit/password", authenticateUser, updateUserPassword)
-  .patch("/forgotpassword", forgotPassword);
+  .patch("/forgotpassword", forgotPassword)
+  .patch("/resetpassword/:restToken", resetPassword);
 
 export default userRouter;

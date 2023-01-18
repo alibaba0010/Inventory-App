@@ -1,10 +1,14 @@
 import pkg from "mongoose";
 const { Schema, model } = pkg;
+
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+
+import pkge from "jsonwebtoken";
+const { sign } = pkge;
 import { randomBytes, createHash } from "crypto";
 import dotenv from "dotenv";
 import { createClient } from "redis";
+
 
 dotenv.config();
 const exp = process.env.JWT_LIFETIME;
@@ -60,7 +64,7 @@ UserSchema.pre("save", async function (next) {
 });
 
 UserSchema.methods.createJWT = async function () {
-  const signInToken = jwt.sign({ userId: this._id }, process.env.JWT_SEC, {
+  const signInToken = sign({ userId: this._id }, process.env.JWT_SEC, {
     expiresIn: process.env.JWT_LIFETIME,
   });
 
@@ -71,10 +75,12 @@ UserSchema.methods.createJWT = async function () {
 UserSchema.methods.createPasswordToken = async function () {
   await redisClient.connect();
   let resetToken = randomBytes(32).toString("hex") + this._id;
-  await redisClient.setEx(this.id, exp, resetToken);
+  const hashedToken = createHash("sha256").update(resetToken).digest("hex");
+
+  await redisClient.setEx(this.id, exp, hashedToken);
 
   await redisClient.disconnect();
-  return resetToken;
+  return hashedToken;
 };
 
 // compare password when login in
@@ -84,3 +90,4 @@ UserSchema.methods.comparePassword = async function (userPassword) {
   return passwordMatch;
 };
 export default model("User", UserSchema);
+ 

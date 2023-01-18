@@ -1,12 +1,13 @@
 import asyncHandler from "express-async-handler";
 import BadRequestError from "../errors/badRequest.js";
+import { randomBytes, createHash } from "crypto";
 import { StatusCodes } from "http-status-codes";
 import User from "../models/User.js";
 import notFoundError from "../errors/notFound.js";
 import UnAuthenticatedError from "../errors/unaunthenticated.js";
 import jwt from "jsonwebtoken";
 import Token from "../models/Token.js";
-import { randomBytes, createHash } from "crypto";
+import { sendEmail } from "../services/Email.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -137,10 +138,75 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
   if (!user) throw new notFoundError("Email doesn't exist");
 
+  // Delete token if it exists in DB
+  const token = await Token.findOne({ userId: user._id });
+  if (token) {
+    await token.deleteOne();
+  }
+
   // Create reset token
   // let resetToken = await user.createPasswordToken();
   let resetToken = randomBytes(32).toString("hex") + user.id;
+  // Hash token before saving to DB
+  const hashedToken = createHash("sha256").update(resetToken).digest("hex");
+  // Save Token to DB
+  await new Token({
+    userId: user.id,
+    token: hashedToken,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 20 * (60 * 1000), // Twenty minutes
+  }).save();
 
-  console.log(resetToken);
-  res.json({ msg: "seen" });
+  const resetUrl = `${process.env.CLIENT_URL}/resetpassword/${resetToken}`;
+
+  // Reset Email
+  const message = `
+ <h2>Hello ${user.name}</h2>
+ <p>Please use the url below to reset your password</p>  
+ <p>This reset link is valid for only 20minutes.</p>
+
+ <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
+
+ <p>Regards...</p>
+ <p>AliBaba Team</p>
+`;
+
+  const subject = "Password Reset Request";
+  const sendTo = user.email;
+  const sentFrom = process.env.EMAIL_USER;
+  const replyTo = process.env.EMAIL_USER;
+  try {
+    const seen = await sendEmail(message, subject, sentFrom, sendTo, replyTo);
+    return res
+      .status(StatusCodes.OK)
+      .json({ msg: "Resent sent", success: true });
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+    throw new Error("Email not sent, please try again");
+  }
+});
+
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { resetToken } = req.params;
+  const { password, confirmPassword } = req.body;
+
+  if (password !== confirmPassword)
+    throw new BadRequestError("Password doesn't match");
+  // Hash token, then compare to Token in DB
+  const hashedToken = createHash("sha256").update(resetToken).digest("hex");
+
+  // fIND tOKEN in DB
+  const userToken = await Token.findOne({
+    token: hashedToken,
+    expiresAt: { $gt: Date.now() },
+  });
+  if (!userToken) throw new notFoundError("Invalid or Expired Token");
+
+  // Find user
+  const user = await Token.findOne({ _id: userToken.userId });
+  user.password = password;
+  await user.save();
+  res.status(StatusCodes.OK).json({
+    msg: "Password Reset Successful, Please Login",
+  });
 });
