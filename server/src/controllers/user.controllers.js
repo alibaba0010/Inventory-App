@@ -5,6 +5,9 @@ import User from "../models/User.js";
 import notFoundError from "../errors/notFound.js";
 import UnAuthenticatedError from "../errors/unaunthenticated.js";
 import jwt from "jsonwebtoken";
+import Token from "../models/Token.js";
+import { randomBytes, createHash } from "crypto";
+
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -127,4 +130,17 @@ export const updateUserPassword = asyncHandler(async (req, res) => {
   user.password = newPassword;
   await user.save();
   res.status(StatusCodes.OK).json({ msg: "Password change successful" });
+});
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) throw new notFoundError("Email doesn't exist");
+
+  // Create reset token
+  // let resetToken = await user.createPasswordToken();
+  let resetToken = randomBytes(32).toString("hex") + user.id;
+
+  console.log(resetToken);
+  res.json({ msg: "seen" });
 });

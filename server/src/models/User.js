@@ -1,9 +1,15 @@
- import pkg from "mongoose";
+import pkg from "mongoose";
 const { Schema, model } = pkg;
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomBytes, createHash } from "crypto";
 import dotenv from "dotenv";
+import { createClient } from "redis";
+
 dotenv.config();
+const exp = process.env.JWT_LIFETIME;
+
+const redisClient = createClient({ url: process.env.REDIS_URI });
 
 const UserSchema = new Schema(
   {
@@ -59,6 +65,16 @@ UserSchema.methods.createJWT = async function () {
   });
 
   return signInToken;
+};
+
+// Create forgot password token
+UserSchema.methods.createPasswordToken = async function () {
+  await redisClient.connect();
+  let resetToken = randomBytes(32).toString("hex") + this._id;
+  await redisClient.setEx(this.id, exp, resetToken);
+
+  await redisClient.disconnect();
+  return resetToken;
 };
 
 // compare password when login in

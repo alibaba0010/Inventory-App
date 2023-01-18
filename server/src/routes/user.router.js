@@ -1,12 +1,13 @@
 import { Router } from "express";
 import {
-  registerUser, 
+  registerUser,
   loginUser,
   loginOutUser,
   getCurrentUser,
   checkUserStatus,
   updateUserProfile,
-  updateUserPassword
+  updateUserPassword,
+  forgotPassword,
 } from "../controllers/user.controllers.js";
 import { authenticateUser } from "../middleware/auth.js";
 const userRouter = Router();
@@ -15,9 +16,10 @@ userRouter
   .post("/register", registerUser)
   .post("/login", loginUser)
   .get("/logout", loginOutUser)
-  .get("/user",authenticateUser, getCurrentUser)
+  .get("/user", authenticateUser, getCurrentUser)
   .get("/dashboard", checkUserStatus)
   .patch("/edit", authenticateUser, updateUserProfile)
   .patch("/edit/password", authenticateUser, updateUserPassword)
+  .patch("/forgotpassword", forgotPassword);
 
 export default userRouter;
