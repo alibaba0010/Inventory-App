@@ -12,8 +12,7 @@ import { sendEmail } from "../services/Email.js";
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
-  // if ((!name|| !email ||password))
-  if ((!name, !email, !password))
+  if ((!name|| !email ||password))
     throw new BadRequestError("Please fill all required field");
   if (password.length < 6)
     throw new BadRequestError("Password must be 6 or more characters");
@@ -43,7 +42,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if ((!email, !password))
+  if ((!email || !password))
     throw new BadRequestError("Please fill all required field");
   const checkUsers = await User.findOne({ email });
   if (!checkUsers) throw new UnAuthenticatedError("Invalid Credentials");
@@ -62,7 +61,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   res.status(StatusCodes.OK).json({ email: checkUsers.email, token });
 });
 
-export const loginOutUser = asyncHandler(async (req, res) => {
+export const logOutUser = asyncHandler(async (req, res) => {
   res.cookie("token", "", {
     path: "/",
     httpOnly: true,
@@ -120,7 +119,7 @@ export const updateUserPassword = asyncHandler(async (req, res) => {
 
   const { oldPassword, newPassword } = req.body;
 
-  if (!oldPassword && !newPassword)
+  if (!oldPassword || !newPassword)
     throw new BadRequestError("Please fill all required field");
 
   const user = await User.findById(userId);

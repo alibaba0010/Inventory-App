@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   registerUser,
   loginUser,
-  loginOutUser,
+  logOutUser,
   getCurrentUser,
   checkUserStatus,
   updateUserProfile,
@@ -16,7 +16,7 @@ const userRouter = Router();
 userRouter
   .post("/register", registerUser)
   .post("/login", loginUser)
-  .get("/logout", loginOutUser)
+  .get("/logout", logOutUser)
   .get("/user", authenticateUser, getCurrentUser)
   .get("/dashboard", checkUserStatus)
   .patch("/edit", authenticateUser, updateUserProfile)
